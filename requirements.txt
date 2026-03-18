@@ -1,4 +1,2 @@
 flask==3.0.0
-app-store-scraper==0.3.5
 requests==2.31.0
-pandas==2.1.4
