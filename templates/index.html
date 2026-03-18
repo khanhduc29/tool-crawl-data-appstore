@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Store Crawler - Cào đánh giá App Store</title>
+    <meta name="description" content="Công cụ cào dữ liệu đánh giá từ Apple App Store theo keyword">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h1>App Store <span class="accent">Crawler</span></h1>
+                </div>
+                <p class="subtitle">Tìm kiếm & cào đánh giá từ Apple App Store</p>
+            </div>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Nhập keyword tìm kiếm (vd: tiktok, spotify, game...)"
+                        autocomplete="off"
+                    >
+                    <select id="countrySelect" title="Quốc gia">
+                        <option value="vn">🇻🇳 Việt Nam</option>
+                        <option value="us">🇺🇸 Mỹ</option>
+                        <option value="jp">🇯🇵 Nhật</option>
+                        <option value="kr">🇰🇷 Hàn</option>
+                        <option value="gb">🇬🇧 Anh</option>
+                        <option value="sg">🇸🇬 Singapore</option>
+                        <option value="th">🇹🇭 Thái</option>
+                    </select>
+                </div>
+                <button id="searchBtn" onclick="searchApps()">
+                    <span class="btn-text">Tìm kiếm</span>
+                    <span class="btn-loader" style="display:none"></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- App List Panel -->
+            <section class="panel app-list-panel" id="appListPanel" style="display:none">
+                <div class="panel-header">
+                    <h2>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Kết quả tìm kiếm
+                    </h2>
+                    <span class="result-count" id="resultCount">0 app</span>
+                </div>
+                <div class="app-grid" id="appGrid"></div>
+            </section>
+
+            <!-- Reviews Panel -->
+            <section class="panel reviews-panel" id="reviewsPanel" style="display:none">
+                <div class="panel-header">
+                    <div class="review-app-info" id="reviewAppInfo"></div>
+                    <div class="panel-actions">
+                        <button class="btn-export" id="exportBtn" onclick="exportCSV()" style="display:none">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Xuất CSV
+                        </button>
+                        <button class="btn-close" onclick="closeReviews()">✕</button>
+                    </div>
+                </div>
+
+                <!-- Rating Summary -->
+                <div class="rating-summary" id="ratingSummary" style="display:none">
+                    <div class="rating-overview">
+                        <div class="rating-big-number" id="totalReviews">0</div>
+                        <div class="rating-label">đánh giá</div>
+                    </div>
+                    <div class="rating-bars" id="ratingBars"></div>
+                </div>
+
+                <!-- Rating Tabs -->
+                <div class="rating-tabs" id="ratingTabs" style="display:none">
+                    <button class="tab active" data-rating="all" onclick="switchTab('all')">Tất cả</button>
+                    <button class="tab" data-rating="5" onclick="switchTab(5)">⭐ 5</button>
+                    <button class="tab" data-rating="4" onclick="switchTab(4)">⭐ 4</button>
+                    <button class="tab" data-rating="3" onclick="switchTab(3)">⭐ 3</button>
+                    <button class="tab" data-rating="2" onclick="switchTab(2)">⭐ 2</button>
+                    <button class="tab" data-rating="1" onclick="switchTab(1)">⭐ 1</button>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="reviews-list" id="reviewsList">
+                    <div class="loading-state" id="reviewsLoading" style="display:none">
+                        <div class="spinner"></div>
+                        <p>Đang cào đánh giá... Vui lòng chờ</p>
+                    </div>
+                    <div class="empty-state" id="reviewsEmpty" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                            <path d="M9 12h.01M15 12h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/>
+                            <path d="M8 16s1.5-2 4-2 4 2 4 2"/>
+                        </svg>
+                        <p>Không có đánh giá nào</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
